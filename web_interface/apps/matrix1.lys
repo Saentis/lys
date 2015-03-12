@@ -1,0 +1,30 @@
+// Author: Steve
+namespace examples::matrix1
+{
+	void main()
+	{
+		for (int col = 0; col < 20; col++)
+			col.work();
+	}
+	void work(int col)
+	{
+		float start = 4.0 + sys::math::random() * 8.0;
+		for (int i = 0; i < start; i++)
+		{
+			async(col) col.anim();
+			async(col) wait 0.05;
+		}
+		async(col) $(col).g = 1.0;
+		async(col) col.work();
+	}
+	void anim(int col)
+	{
+		for (int i = 14; i >= 0; i--)
+		{
+			if (i > 0 && $((i - 1) * 20 + col).g == 1.0)
+				$(i * 20 + col).g = 1.0;
+			else
+				$(i * 20 + col).g *= 0.8;
+		}
+	}
+}

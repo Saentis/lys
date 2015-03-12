@@ -1,0 +1,35 @@
+// Author: Luc
+namespace examples::circular2
+{
+	void dosin(int id, led l)
+	{
+		import sys::math;
+		float y = id / 15;
+		float x = id;
+		x -= 15 * y;
+		if (x < 8)
+			x -= 3.5;
+		else
+			x -= 11.0;
+		if (y < 5)
+			y -= 2.5;
+		else
+			y -= 7.5;
+
+		float radius = sqrt(x * x + y * y);
+		for (int t = 0; t < 50; t++)
+		{
+			float g = sin(radius/5 + 3.1415926/6.0 - t * 3.1415926 / 50.0).abs();
+			float r = sin(radius/5 - t * 3.1415926 / 50.0).abs();
+			float b = sin(radius/5 + 3.1415926/3.0 - t * 3.1415926 / 50.0).abs();
+			async(id) l.rgb(r, g, b);
+			async(id) wait 0.05;
+		}
+		async(id) dosin(id, l);
+	}
+	void main()
+	{
+		for (int id = 0; id < 150; id++)
+			dosin(id, $(id));
+	}
+}

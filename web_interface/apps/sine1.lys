@@ -1,0 +1,20 @@
+// Author: Steve
+namespace examples::sine1
+{
+	void dosin(int i, led x)
+	{
+		import sys::math;
+		for (int t = 0; t < 50; t++)
+		{
+			float r = sin(i / 150.0 + t * 3.1415926 / 50.0).abs();
+			async(i) x.r = r;
+			async(i) wait 0.05;
+		}
+		async(i) i.dosin(x);
+	}
+	void main()
+	{
+		for (int i = 0; i < 150; i++)
+			i.dosin($(i));
+	}
+}

@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C8021ECF-1FF2-4D94-8280-1E2C934336D5}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Lys</RootNamespace>
+    <AssemblyName>Lys</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Octarine.Lys\Compile\JavascriptCompiler.cs" />
+    <Compile Include="Octarine.Lys\CompileException.cs" />
+    <Compile Include="Octarine.Lys\Compile\CompilerBase.cs" />
+    <Compile Include="Octarine.Lys\Language\FuncType.cs" />
+    <Compile Include="Octarine.Lys\Language\CustomType.cs" />
+    <Compile Include="Octarine.Lys\Language\GenericVecType.cs" />
+    <Compile Include="Octarine.Lys\Language\VecType.cs" />
+    <Compile Include="Octarine.Lys\Language\LedType.cs" />
+    <Compile Include="Octarine.Lys\Language\TypeBase.cs" />
+    <Compile Include="Octarine.Lys\Language\FunctionSignature.cs" />
+    <Compile Include="Octarine.Lys\Language\FunctionContext.cs" />
+    <Compile Include="Octarine.Lys\RawInt.cs" />
+    <Compile Include="Octarine.Lys\Process\FourParametrizedOperation.cs" />
+    <Compile Include="Octarine.Lys\Process\IInterpreterFactory.cs" />
+    <Compile Include="Octarine.Lys\Process\InstructionInterpreterFactory.cs" />
+    <Compile Include="Octarine.Lys\Helper.cs" />
+    <Compile Include="Octarine.Lys\Process\IDocumentProcessor.cs" />
+    <Compile Include="Octarine.Lys\Process\Scope.cs" />
+    <Compile Include="Octarine.Lys\Language\ITypeTable.cs" />
+    <Compile Include="Octarine.Lys\Language\TypeTable.cs" />
+    <Compile Include="Octarine.Lys\Process\DocumentProcessor.cs" />
+    <Compile Include="Octarine.Lys\Process\UserFunction.cs" />
+    <Compile Include="Octarine.Lys\Language\IntType.cs" />
+    <Compile Include="Octarine.Lys\Language\BoolType.cs" />
+    <Compile Include="Octarine.Lys\Language\FloatType.cs" />
+    <Compile Include="Octarine.Lys\Language\ArrayType.cs" />
+    <Compile Include="Octarine.Lys\Language\StringType.cs" />
+    <Compile Include="Octarine.Lys\Language\Namespace.cs" />
+    <Compile Include="Octarine.Lys\Parse\VarStringCharReader.cs" />
+    <Compile Include="Octarine.Lys\Parse\TokenIterator.cs" />
+    <Compile Include="Octarine.Lys\RawFloat.cs" />
+    <Compile Include="Octarine.Lys\Language\IType.cs" />
+    <Compile Include="Octarine.Lys\Language\Variable.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Octarine.Lys\Process\InstructionInterpreter.cs" />
+    <Compile Include="Octarine.Lys\Process\TwoParametrizedOperation.cs" />
+    <Compile Include="Octarine.Lys\Process\IInterpreter.cs" />
+    <Compile Include="Octarine.Lys\Process\IOperation.cs" />
+    <Compile Include="Octarine.Lys\Process\IOperationCollection.cs" />
+    <Compile Include="Octarine.Lys\Process\IOperationCollectionIterator.cs" />
+    <Compile Include="Octarine.Lys\Process\OperationCollection.cs" />
+    <Compile Include="Octarine.Lys\Process\OperationType.cs" />
+    <Compile Include="Octarine.Lys\Process\ParametrizedOperation.cs" />
+    <Compile Include="Octarine.Lys\Process\SimpleOperation.cs" />
+    <Compile Include="Octarine.Lys\Process\SingleOperation.cs" />
+    <Compile Include="Octarine.Lys\Parse\ICharReader.cs" />
+    <Compile Include="Octarine.Lys\Parse\ITokenizer.cs" />
+    <Compile Include="Octarine.Lys\Parse\TextReaderCharReader.cs" />
+    <Compile Include="Octarine.Lys\Parse\StringCharReader.cs" />
+    <Compile Include="Octarine.Lys\Parse\Token.cs" />
+    <Compile Include="Octarine.Lys\Parse\Tokenizer.cs" />
+    <Compile Include="Octarine.Lys\Parse\TokenType.cs" />
+    <Compile Include="Octarine.Lys\Parse\ValuedToken.cs" />
+    <Compile Include="Octarine.Lys\SyntaxException.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
