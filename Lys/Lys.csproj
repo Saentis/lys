@@ -73,7 +73,6 @@
     <Compile Include="Octarine.Lys\Language\IType.cs" />
     <Compile Include="Octarine.Lys\Language\Variable.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Octarine.Lys\Process\InstructionInterpreter.cs" />
     <Compile Include="Octarine.Lys\Process\TwoParametrizedOperation.cs" />
     <Compile Include="Octarine.Lys\Process\IInterpreter.cs" />
@@ -94,6 +93,7 @@
     <Compile Include="Octarine.Lys\Parse\TokenType.cs" />
     <Compile Include="Octarine.Lys\Parse\ValuedToken.cs" />
     <Compile Include="Octarine.Lys\SyntaxException.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
