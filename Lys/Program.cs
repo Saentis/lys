@@ -21,7 +21,7 @@ namespace Lys
         static int Main(string[] args)
         {
 #if DEBUG
-            FileInput("example.lys", Encoding.Default, true);
+            FileInput("matrix1.lys", Encoding.Default, true);
             Console.WriteLine();
             Console.Write("Press any key to exit ... ");
             Console.ReadKey(true);
