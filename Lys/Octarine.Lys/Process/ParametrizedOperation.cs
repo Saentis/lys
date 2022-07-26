@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -12,7 +12,7 @@ namespace Octarine.Lys.Process
     /// <summary>
     /// Represents an operation with one additional parameter.
     /// </summary>
-    public class ParametrizedOperation<T> : SimpleOperation
+    public class ParametrizedOperation<T> : SimpleOperation where T : notnull
     {
         /// <summary>
         /// Initializes a new parametrized operation.
@@ -43,9 +43,8 @@ namespace Octarine.Lys.Process
 
         public override string ToString()
         {
-            if (this.Parameter is Array)
+            if (this.Parameter is Array array)
             {
-                Array array = this.Parameter as Array;
                 object[] arrayCopy = new object[array.Length];
                 array.CopyTo(arrayCopy, 0);
                 return base.ToString() + " (" + string.Join(", ", Array.ConvertAll(arrayCopy, x => x.ToString())) + ")";

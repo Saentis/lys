@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -12,9 +12,9 @@ namespace Octarine.Lys.Language
     {
         public abstract string Identifier { get; }
 
-        public virtual bool CanCastTo(IType other)
+        public virtual bool CanCastTo(IType? other)
         {
-            return other.GetType() == this.GetType();
+            return other?.GetType() == this.GetType();
         }
 
         public virtual IType OperationPlus(IType other)

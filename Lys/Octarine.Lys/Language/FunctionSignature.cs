@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -35,7 +35,7 @@ namespace Octarine.Lys.Language
         /// <summary>
         /// The return type of the function, or null if it does not have any.
         /// </summary>
-        public IType ReturnType;
+        public IType? ReturnType;
 
         /// <summary>
         /// The path of the namespace which this function is contained in.

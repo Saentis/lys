@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -68,7 +68,7 @@ namespace Octarine.Lys.Process
         /// <param name="inNamespace">The namespace in which the type shall be looked up. If the namespace itself does not contain the type definition, the parent namespaces are browsed.</param>
         /// <param name="namespaceLengthRestriction">The amount of namespace parts which shall be considered in the lookup process. This is used by the method itself recursively, and should otherwise be set to the amout of namespace parts.</param>
         /// <returns>the type if it was found, or null otherwise.</returns>
-        private IType LookupType(string identfier, IEnumerable<string> inNamespace, int namespaceLengthRestriction)
+        private IType? LookupType(string identfier, IEnumerable<string> inNamespace, int namespaceLengthRestriction)
         {
             if (identfier == null)
                 throw new ArgumentNullException("identfier");
@@ -222,10 +222,8 @@ namespace Octarine.Lys.Process
             {
                 string aliasPath = string.Join("::", ReadNamespacePath().ToArray());
                 long aliasPosition = _iterator.Position;
-                IType alias = LookupType(aliasPath, parentNamespace, parentNamespace.Count);
-                if (object.ReferenceEquals(null, alias))
-                    throw new SyntaxException(aliasPosition, "Unrecognized type: " + aliasPath);
-                type = alias;
+                IType? alias = LookupType(aliasPath, parentNamespace, parentNamespace.Count);
+                type = alias ?? throw new SyntaxException(aliasPosition, "Unrecognized type: " + aliasPath);
             }
             else if (_iterator.Is(TokenType.CurlyBracketLeft))
             {
@@ -251,9 +249,8 @@ namespace Octarine.Lys.Process
                     // Read field type
                     long fieldTypePosition = _iterator.Position;
                     string fieldTypePath = string.Join("::", ReadNamespacePath().ToArray());
-                    IType fieldType = LookupType(fieldTypePath, parentNamespace, parentNamespace.Count);
-                    if (object.ReferenceEquals(null, fieldType))
-                        throw new SyntaxException(fieldTypePosition, "Unrecognized type: " + fieldTypePath);
+                    IType fieldType = LookupType(fieldTypePath, parentNamespace, parentNamespace.Count)
+                        ?? throw new SyntaxException(fieldTypePosition, "Unrecognized type: " + fieldTypePath);
 
                     fields.Add(fieldName, fieldType);
                 }
@@ -305,16 +302,15 @@ namespace Octarine.Lys.Process
 
             // Look up return type
             long returnTypePosition = _iterator.Position;
-            IType returnType;
+            IType? returnType;
             if (_iterator.Is(TokenType.Name) && _iterator.GetValue<string>() == "void")
             {
                 returnType = null;
             }
             else
             {
-                returnType = LookupType(returnTypeIdentifier, parentNamespace, parentNamespace.Count);
-                if (object.ReferenceEquals(null, returnType))
-                    throw new SyntaxException(returnTypePosition, "Unrecognized type: " + returnTypeIdentifier);
+                returnType = LookupType(returnTypeIdentifier, parentNamespace, parentNamespace.Count)
+                    ?? throw new SyntaxException(returnTypePosition, "Unrecognized type: " + returnTypeIdentifier);
             }
 
             _iterator.Next();
@@ -343,9 +339,8 @@ namespace Octarine.Lys.Process
 
                     // Look up return type
                     long argTypePosition = _iterator.Position;
-                    IType argType = LookupType(argTypeIdentifier, parentNamespace, parentNamespace.Count);
-                    if (object.ReferenceEquals(null, argType))
-                        throw new SyntaxException(argTypePosition, "Unrecognized type: " + argTypeIdentifier);
+                    IType argType = LookupType(argTypeIdentifier, parentNamespace, parentNamespace.Count)
+                        ?? throw new SyntaxException(argTypePosition, "Unrecognized type: " + argTypeIdentifier);
 
                     _iterator.Next();
 

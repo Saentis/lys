@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -674,7 +674,7 @@ namespace Octarine.Lys.Process
             count = 0;
             do
             {
-                operations.Append(customCallback(scope)); // left-to-right
+                operations.Append(customCallback(scope));
                 count++;
 
                 if (!_iterator.Is(TokenType.Comma))

@@ -58,6 +58,7 @@ namespace Octarine.Lys.Process
         PrefixDecrement,
         PropertyAccess,
         Index,
+        ColonIndex, // parametrized (numArgs: int)
         Call, // parametrized (numArgs: int)
 
         // Loops

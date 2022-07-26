@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -118,6 +118,8 @@ namespace Octarine.Lys.Compile
             StackElement stackElement;
             while (iter.Next())
             {
+                if (iter.Current is null)
+                    throw new Exception("Encountered unexpected null iterator value.");
                 switch (iter.Current.Type)
                 {
                     #region OpCode structure
@@ -164,11 +166,13 @@ namespace Octarine.Lys.Compile
                             IType resultType;
                             try
                             {
+                                if (stackElement.Type is null || stackOtherElement.Type is null)
+                                    throw new NotSupportedException();
                                 resultType = stackElement.Type.OperationDivide(stackOtherElement.Type);
                             }
                             catch (NotSupportedException)
                             {
-                                throw new CompileException(iter.Current.SourcePosition, "Operator / not defined on " + stackElement.Type.Identifier + " and " + stackOtherElement.Type.Identifier);
+                                throw new CompileException(iter.Current.SourcePosition, "Operator / not defined on " + stackElement.Type?.Identifier + " and " + stackOtherElement.Type?.Identifier);
                             }
                             // Javascript always does float division
                             string code = resultType.Identifier.StartsWith("float") ? "({0}/{1})" : "Math.floor(({0}/{1}))";
@@ -210,7 +214,7 @@ namespace Octarine.Lys.Compile
                     case OperationType.PrefixDecrement: handleGenericIncDecOperation(stack, "--", "", iter.Current.SourcePosition); break;
                     case OperationType.PropertyAccess:
                         {
-                            string propertyName = iter.Current.GetMetaData().First() as string;
+                            string? propertyName = iter.Current.GetMetaData()?.First() as string;
                             if (propertyName == null) throw new InvalidDataException("PropertyAccess expects a string argument.");
 
                             // Get the object the property of which is accessed
@@ -218,11 +222,11 @@ namespace Octarine.Lys.Compile
                             IType propertyType;
                             try
                             {
-                                propertyType = stackElement.Type.OperationProperty(propertyName);
+                                propertyType = stackElement.Type?.OperationProperty(propertyName) ?? throw new NotSupportedException();
                             }
                             catch (NotSupportedException)
                             {
-                                throw new CompileException(iter.Current.SourcePosition, "Property " + propertyName + " is not defined on " + stackElement.Type.Identifier);
+                                throw new CompileException(iter.Current.SourcePosition, "Property " + propertyName + " is not defined on " + stackElement.Type?.Identifier);
                             }
 
                             if (stackElement.Type is CustomType)
@@ -239,11 +243,13 @@ namespace Octarine.Lys.Compile
                             IType resultType;
                             try
                             {
+                                if (stackElementObject.Type is null || stackElementIndex.Type is null)
+                                    throw new NotSupportedException();
                                 resultType = stackElementObject.Type.OperationIndex(stackElementIndex.Type);
                             }
                             catch (NotSupportedException)
                             {
-                                throw new CompileException(iter.Current.SourcePosition, "Cannot index " + stackElementObject.Type.Identifier + " using " + stackElementIndex.Type.Identifier);
+                                throw new CompileException(iter.Current.SourcePosition, "Cannot index " + stackElementObject.Type?.Identifier + " using " + stackElementIndex.Type?.Identifier);
                             }
 
                             if (stackElementObject.Type is StringType)
@@ -258,7 +264,7 @@ namespace Octarine.Lys.Compile
                             int argCount = (int)iter.Current.GetMetaData().First();
                             StringBuilder argString = new StringBuilder("(");
                             StackElement[] args = new StackElement[argCount];
-                            IType[] argTypes = new IType[argCount];
+                            IType?[] argTypes = new IType[argCount];
                             for (int i = 0; i < argCount; i++)
                             {
                                 argTypes[argCount - 1 - i] = (args[argCount - 1 - i] = stack.Pop()).Type;
@@ -326,8 +332,7 @@ namespace Octarine.Lys.Compile
                         result.UsedVariables.UnionWith(r.UsedVariables);
                         result.CreatedVariables.UnionWith(r.CreatedVariables);
                         output.WriteLine(levelPrefix + "}");
-                        if (!result.HasReturnType)
-                            result.ReturnType = r.ReturnType;
+                        result.ReturnType ??= r.ReturnType;
                         break;
                     case OperationType.EndScope:
                         if (stack.Count != 0)
@@ -335,7 +340,7 @@ namespace Octarine.Lys.Compile
                         return result;
                     case OperationType.If:
                         stackElement = stack.Pop(); // stack contains `if` condition
-                        if (stackElement.Type.Identifier != "bool")
+                        if (stackElement.Type?.Identifier != "bool")
                             throw new CompileException(iter.Current.SourcePosition, "If-statement expects a boolean value as its condition");
                         output.Write(levelPrefix + "if (");
                         output.Write(stackElement.CodeGet);
@@ -369,10 +374,9 @@ namespace Octarine.Lys.Compile
                         // If both statements return something, the whole block does so as well.
                         // Note that we checked type compatibility when compiling the RETURN operation itself,
                         // see `case OperationType.Return`.
-                        if (retType1.HasReturnType && retType2.HasReturnType)
+                        if (retType1.ReturnType is not null && retType2.ReturnType is not null)
                         {
-                            if (!result.HasReturnType)
-                                result.ReturnType = context.Signature.ReturnType;
+                            result.ReturnType ??= context.Signature.ReturnType;
                         }
                         break;
                     case OperationType.For:
@@ -392,7 +396,7 @@ namespace Octarine.Lys.Compile
                             throw new CompileException(iter.Current.SourcePosition, "Expected operation block after for-statement");
                         long forCondPos = iter.Current.SourcePosition;
                         var forCondType = this.CompileInstructionScope(output, context, scopeBody, iter, string.Empty);
-                        if (!forCondType.HasReturnType || forCondType.ReturnType.Identifier != "bool")
+                        if (forCondType.ReturnType is null || forCondType.ReturnType.Identifier != "bool")
                             throw new CompileException(forCondPos, "Expected boolean value for for-condition");
                         output.Write("; ");
 
@@ -413,10 +417,9 @@ namespace Octarine.Lys.Compile
                         output.WriteLine(levelPrefix + "}");
 
                         // Handle case where there is a `return` statement in the `for` body
-                        if (forReturnType.HasReturnType)
+                        if (forReturnType.ReturnType is not null)
                         {
-                            if (!result.HasReturnType)
-                                result.ReturnType = forReturnType.ReturnType;
+                            result.ReturnType ??= forReturnType.ReturnType;
                         }
                         break;
                     case OperationType.While:
@@ -427,7 +430,7 @@ namespace Octarine.Lys.Compile
                             throw new CompileException(iter.Current.SourcePosition, "Expected operation block after while-statement");
                         long whileCondPos = iter.Current.SourcePosition;
                         var whileCondType = this.CompileInstructionScope(output, context, scope, iter, levelPrefix + '\t');
-                        if (!whileCondType.HasReturnType || whileCondType.ReturnType.Identifier != "bool")
+                        if (whileCondType.ReturnType is null || whileCondType.ReturnType.Identifier != "bool")
                             throw new CompileException(whileCondPos, "Expected boolean value for while-condition");
                         output.WriteLine(") {");
 
@@ -440,10 +443,9 @@ namespace Octarine.Lys.Compile
                         output.WriteLine(levelPrefix + "}");
 
                         // Handle case where there is a `return` statement in the `while` body
-                        if (whileReturnType.HasReturnType)
+                        if (whileReturnType.ReturnType is not null)
                         {
-                            if (!result.HasReturnType)
-                                result.ReturnType = whileReturnType.ReturnType;
+                            result.ReturnType ??= whileReturnType.ReturnType;
                         }
                         break;
                     case OperationType.DoWhile:
@@ -463,15 +465,14 @@ namespace Octarine.Lys.Compile
                         var dowhileCondType = this.CompileInstructionScope(output, context, scope, iter, string.Empty);
                         result.UsedVariables.UnionWith(dowhileCondType.UsedVariables);
                         result.CreatedVariables.UnionWith(dowhileCondType.CreatedVariables);
-                        if (!dowhileCondType.HasReturnType || dowhileCondType.ReturnType.Identifier != "bool")
+                        if (dowhileCondType.ReturnType is null || dowhileCondType.ReturnType.Identifier != "bool")
                             throw new CompileException(dowhileCondPos, "Expected boolean value for do-condition");
                         output.WriteLine(");");
 
                         // Handle case where there is a `return` statement in the `while` body
-                        if (dowhileReturnType.HasReturnType)
+                        if (dowhileReturnType.ReturnType is not null)
                         {
-                            if (!result.HasReturnType)
-                                result.ReturnType = dowhileReturnType.ReturnType;
+                            result.ReturnType ??= dowhileReturnType.ReturnType;
                         }
                         break;
 
@@ -481,7 +482,7 @@ namespace Octarine.Lys.Compile
 
                     case OperationType.LoadSymbol:
                         {
-                            string variableName = iter.Current.GetMetaData().First() as string;
+                            string? variableName = iter.Current.GetMetaData().First() as string;
                             if (variableName == null) throw new InvalidDataException("LoadSymbol expects a string argument.");
                             if (!scope.HasVariable(variableName))
                                 throw new CompileException(iter.Current.SourcePosition, "Cannot resolve variable: " + variableName);
@@ -538,16 +539,16 @@ namespace Octarine.Lys.Compile
                                 array[length - 1 - i] = stack.Pop();
 
                             // Compile the elements and remember the common data type
-                            IType commonType = null;
+                            IType? commonType = null;
                             StringBuilder sbEntries = new StringBuilder("[");
                             for (int i = 0; i < length; i++)
                             {
                                 var e = array[i];
-                                if (i == 0)
+                                if (commonType is null)
                                     commonType = e.Type;
                                 else if (commonType.CanCastTo(e.Type))
                                     commonType = e.Type;
-                                else if (!e.Type.CanCastTo(commonType))
+                                else if (!(e.Type?.CanCastTo(commonType)??false))
                                     throw new CompileException(iter.Current.SourcePosition, "Incompatible types in array");
 
                                 if (i > 0) sbEntries.Append(",");
@@ -573,7 +574,7 @@ namespace Octarine.Lys.Compile
                             for (int i = 0; i < dimension; i++)
                             {
                                 var e = vec[i];
-                                if (!e.Type.CanCastTo(commonType))
+                                if (!(e.Type?.CanCastTo(commonType)??false))
                                     throw new CompileException(iter.Current.SourcePosition, "Vector element must be floating point numbers");
 
                                 if (i > 0) sbEntries.Append(",");
@@ -599,9 +600,9 @@ namespace Octarine.Lys.Compile
                                 iter.Next();
                             }
 
-                            IType variableType = iter.Current.GetMetaData().First() as IType;
-                            string variableName = iter.Current.GetMetaData().Skip(1).First() as string;
-                            if (object.ReferenceEquals(null, variableType) || object.ReferenceEquals(null, variableName))
+                            IType? variableType = iter.Current.GetMetaData().First() as IType;
+                            string? variableName = iter.Current.GetMetaData().Skip(1).First() as string;
+                            if (variableType is null || variableName is null)
                                 throw new InvalidDataException("CreateVariable expects an <IType,string> argument.");
 
                             // Register variable
@@ -615,8 +616,8 @@ namespace Octarine.Lys.Compile
                             {
                                 // Check type compatibility
                                 stackElement = stack.Pop();
-                                if (!stackElement.Type.CanCastTo(variableType))
-                                    throw new CompileException(iter.Current.SourcePosition, "Cannot convert " + stackElement.Type.Identifier + " to " + variableType.Identifier);
+                                if (!(stackElement.Type?.CanCastTo(variableType)??false))
+                                    throw new CompileException(iter.Current.SourcePosition, "Cannot convert " + stackElement.Type?.Identifier + " to " + variableType.Identifier);
                                 // Whenever we assign a struct value ('custom type') to a new variable,
                                 // we have to create a copy of the value (in Javascript)
                                 if (stackElement.Type is CustomType)
@@ -627,14 +628,7 @@ namespace Octarine.Lys.Compile
                             else if (variableType is CustomType)
                             {
                                 // In Javascript, we have to initialize objects so that its properties are known
-                                Func<CustomType, string> initCode = null;
-                                initCode = (t) =>
-                                {
-                                    var f1 = t.Fields.Where(x => x.Value is CustomType).Select(x => x.Key + ":" + initCode((CustomType)x.Value));
-                                    var f2 = t.Fields.Where(x => !(x.Value is CustomType)).Select(x => x.Key + ":null");
-                                    return "{" + string.Join(",", f1.Concat(f2).ToArray()) + "}";
-                                };
-                                output.Write("=" + initCode((CustomType)variableType));
+                                output.Write("=" + generateInitCode((CustomType)variableType));
                             }
                             if (!isForInitialization)
                                 output.WriteLine(";");
@@ -662,18 +656,17 @@ namespace Octarine.Lys.Compile
                         // Check compatibility
                         if (object.ReferenceEquals(null, context.Signature.ReturnType))
                             throw new CompileException(iter.Current.SourcePosition, "The function does not allow values to be returned");
-                        if (!stackElement.Type.CanCastTo(context.Signature.ReturnType))
-                            throw new CompileException(iter.Current.SourcePosition, "Cannot convert " + stackElement.Type.Identifier + " to " + context.Signature.ReturnType.Identifier);
+                        if (!(stackElement.Type?.CanCastTo(context.Signature.ReturnType)??false))
+                            throw new CompileException(iter.Current.SourcePosition, "Cannot convert " + stackElement.Type?.Identifier + " to " + context.Signature.ReturnType.Identifier);
 
-                        if (!result.HasReturnType)
-                            result.ReturnType = stackElement.Type;
+                        result.ReturnType ??= stackElement.Type;
                         break;
                     case OperationType.Import:
                         scope.ImportNamespace((string[])iter.Current.GetMetaData().First());
                         break;
                     case OperationType.Async:
                         stackElement = stack.Pop(); // contains the queue identifier
-                        if (!stackElement.Type.CanCastTo(this.BuiltinTypes.Lookup("int")))
+                        if (!(stackElement.Type?.CanCastTo(this.BuiltinTypes.Lookup("int"))??false))
                             throw new CompileException(iter.Current.SourcePosition, "Async identifier must be an integer");
                         if (!iter.Next() || iter.Current.Type != OperationType.BeginScope)
                             throw new CompileException(iter.Current.SourcePosition, "Expected scope after async-statement");
@@ -718,9 +711,9 @@ namespace Octarine.Lys.Compile
                     case OperationType.AsyncWait:
                         var asyncTime = stack.Pop(); // waiting time in seconds
                         var asyncId = stack.Pop(); // queue identifier
-                        if (!asyncId.Type.CanCastTo(this.BuiltinTypes.Lookup("int")))
+                        if (!(asyncId.Type?.CanCastTo(this.BuiltinTypes.Lookup("int"))??false))
                             throw new CompileException(iter.Current.SourcePosition, "Async identifier must be an integer");
-                        if (!asyncTime.Type.CanCastTo(this.BuiltinTypes.Lookup("float")))
+                        if (!(asyncTime.Type?.CanCastTo(this.BuiltinTypes.Lookup("float"))??false))
                             throw new CompileException(iter.Current.SourcePosition, "Async waiting time must be a number (float/int)");
                         output.Write(levelPrefix + "$vm.async(");
                         output.Write(asyncId.CodeGet);
@@ -753,8 +746,14 @@ namespace Octarine.Lys.Compile
             }
 
             if (stack.Count != 0)
-                throw new CompileException(iter.Current.SourcePosition, "Instruction stack should be empty at end of scope");
+                throw new CompileException(iter.Current?.SourcePosition ?? -1, "Instruction stack should be empty at end of scope");
             return result;
+        }
+
+        private string generateInitCode(CustomType t){
+            var f1 = t.Fields.Where(x => x.Value is CustomType).Select(x => x.Key + ":" + generateInitCode((CustomType)x.Value));
+            var f2 = t.Fields.Where(x => !(x.Value is CustomType)).Select(x => x.Key + ":null");
+            return "{" + string.Join(",", f1.Concat(f2).ToArray()) + "}";
         }
 
         private void handleGenericBinaryOperation(Stack<StackElement> stack, string opChar, Func<IType, IType, IType> op, long position)
@@ -764,11 +763,13 @@ namespace Octarine.Lys.Compile
             IType resultType;
             try
             {
+                if (stackElement.Type is null || stackOtherElement.Type is null)
+                    throw new NotSupportedException();
                 resultType = op(stackElement.Type, stackOtherElement.Type);
             }
             catch (NotSupportedException)
             {
-                throw new CompileException(position, "Operator " + opChar + " not defined on " + stackElement.Type.Identifier + " and " + stackOtherElement.Type.Identifier);
+                throw new CompileException(position, "Operator " + opChar + " not defined on " + stackElement.Type?.Identifier + " and " + stackOtherElement.Type?.Identifier);
             }
 
             string newcode;
@@ -808,11 +809,13 @@ namespace Octarine.Lys.Compile
             IType resultType;
             try
             {
+                if (stackElement.Type is null)
+                    throw new NotSupportedException();
                 resultType = op(stackElement.Type);
             }
             catch (NotSupportedException)
             {
-                throw new CompileException(position, "Operator " + opChar + " not defined on " + stackElement.Type.Identifier);
+                throw new CompileException(position, "Operator " + opChar + " not defined on " + stackElement.Type?.Identifier);
             }
 
             string newcode;
@@ -842,11 +845,13 @@ namespace Octarine.Lys.Compile
 
             try
             {
+                if (stackElement.Type is null || stackOtherElement.Type is null)
+                    throw new NotSupportedException();
                 resultType = op(stackElement.Type, stackOtherElement.Type);
             }
             catch (NotSupportedException)
             {
-                throw new CompileException(position, "Operator not defined on " + stackElement.Type.Identifier + " and " + stackOtherElement.Type.Identifier);
+                throw new CompileException(position, "Operator not defined on " + stackElement.Type?.Identifier + " and " + stackOtherElement.Type?.Identifier);
             }
 
             // Types have to match

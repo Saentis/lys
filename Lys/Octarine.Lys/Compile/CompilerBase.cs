@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -42,7 +42,6 @@ namespace Octarine.Lys.Compile
         private string _appName;
         private StructuredNamespace _rootNamespace;
         private ITypeTable _builtinTypes;
-        private int _tempVariableCounter = 0;
 
         protected class StructuredNamespace
         {
@@ -65,7 +64,7 @@ namespace Octarine.Lys.Compile
                 return new StructuredNamespace();
             }
 
-            public string Name;
+            public string? Name;
             public List<FunctionSignature> BuiltinFunctions = new List<FunctionSignature>();
             public List<UserFunction> UserFunctions = new List<UserFunction>();
             public Dictionary<string, IType> TypeDefinitions = new Dictionary<string, IType>();
@@ -119,14 +118,14 @@ namespace Octarine.Lys.Compile
         /// </summary>
         protected class StackElement
         {
-            public StackElement(string code, IType type)
+            public StackElement(string? code, IType? type)
             {
                 this.RawCode = code;
                 this.Type = type;
                 this.IsVariable = false;
                 this.IsProperty = false;
             }
-            public StackElement(string code, IType type, bool isVariable, bool isProperty)
+            public StackElement(string code, IType? type, bool isVariable, bool isProperty)
             {
                 this.RawCode = code;
                 this.Type = type;
@@ -137,7 +136,7 @@ namespace Octarine.Lys.Compile
             /// <summary>
             /// The associated Javascript source code, as passed to the constructor.
             /// </summary>
-            public string RawCode { get; private set; }
+            public string? RawCode { get; private set; }
             
             /// <summary>
             /// The associated Javascript source code,
@@ -147,6 +146,9 @@ namespace Octarine.Lys.Compile
             {
                 get
                 {
+                    if (this.RawCode is null)
+                        return "";
+
                     string code = this.IsProperty ? this.RawCode + "()" : this.RawCode;
                     if (this.Type is IntType)
                     {
@@ -162,7 +164,7 @@ namespace Octarine.Lys.Compile
             /// <summary>
             /// The type of this stack element.
             /// </summary>
-            public IType Type { get; private set; }
+            public IType? Type { get; private set; }
 
             /// <summary>
             /// Indicates whether this element is a variable.
@@ -185,15 +187,7 @@ namespace Octarine.Lys.Compile
             /// The type of the return value of this instruction scope.
             /// May be null if no value is returned.
             /// </summary>
-            public IType ReturnType;
-
-            /// <summary>
-            /// Indicates whether the scope has a return value.
-            /// </summary>
-            public bool HasReturnType
-            {
-                get { return !object.ReferenceEquals(null, ReturnType); }
-            }
+            public IType? ReturnType;
 
             /// <summary>
             /// The set of all variables used in this scope.
@@ -284,7 +278,7 @@ namespace Octarine.Lys.Compile
         /// <param name="scope">The scope in which the function is called.</param>
         /// <param name="arguments">The arguments with which the function is called.</param>
         /// <returns>the function if it was found, an empty element with .Index == -1 otherwise.</returns>
-        protected FunctionSignature ResolveFunction(string[] funcPath, string[] namespaceContext, Scope scope, IType[] arguments)
+        protected FunctionSignature ResolveFunction(string[] funcPath, string[] namespaceContext, Scope scope, IType?[] arguments)
         {
             // List all potential functions
             List<FunctionSignature> potentialFunctions = new List<FunctionSignature>();
@@ -293,11 +287,11 @@ namespace Octarine.Lys.Compile
             // `funcPath` can be relative to any part of `namespaceContext`
             for (int context = namespaceContext.Length; context >= 0; context--)
             {
-                StructuredNamespace ptr = _rootNamespace; // pointer to the current namespace in the search process
+                StructuredNamespace? ptr = _rootNamespace; // pointer to the current namespace in the search process
                 for (int i = 0; ptr != null && i < context + funcPath.Length - 1; i++)
                 {
                     string token = i < context ? namespaceContext[i] : funcPath[i - context];
-                    ptr = ptr.Children.Find(x => x.Name == token);
+                    ptr = ptr?.Children.Find(x => x.Name == token);
                 }
                 if (ptr != null)
                 {
@@ -310,11 +304,11 @@ namespace Octarine.Lys.Compile
             // `funcPath` can be relative to any imported namespace
             foreach (var ns in scope.GetImportedNamespaces())
             {
-                StructuredNamespace ptr = _rootNamespace; // pointer to the current namespace in the search process
+                StructuredNamespace? ptr = _rootNamespace; // pointer to the current namespace in the search process
                 for (int i = 0; ptr != null && i < ns.Length + funcPath.Length - 1; i++)
                 {
                     string token = i < ns.Length ? ns[i] : funcPath[i - ns.Length];
-                    ptr = ptr.Children.Find(x => x.Name == token);
+                    ptr = ptr?.Children.Find(x => x.Name == token);
                 }
                 if (ptr != null)
                 {
@@ -331,7 +325,7 @@ namespace Octarine.Lys.Compile
                 bool signatureMatch = true;
                 for (int i = 0; i < f.Arguments.Length; i++)
                 {
-                    if (!arguments[i].CanCastTo(f.Arguments[i].Type))
+                    if (!(arguments[i]?.CanCastTo(f.Arguments[i].Type)??false))
                     {
                         signatureMatch = false;
                         break;
@@ -350,14 +344,14 @@ namespace Octarine.Lys.Compile
         /// <param name="actualReturnType">The type of the value which is returned.</param>
         /// <param name="definedReturnType">The type of the function specified in the function signature.</param>
         /// <param name="positionInSourceCode">The current position of the token in the source code. Used for throwing exceptions.</param>
-        protected void VerifyReturnType(IType actualReturnType, IType definedReturnType, long positionInSourceCode)
+        protected void VerifyReturnType(IType? actualReturnType, IType? definedReturnType, long positionInSourceCode)
         {
-            if (object.ReferenceEquals(null, actualReturnType))
+            if (actualReturnType is null)
             {
-                if (!object.ReferenceEquals(null, definedReturnType))
+                if (definedReturnType is not null)
                     throw new CompileException(positionInSourceCode, "Function does not return a value");
             }
-            else if (object.ReferenceEquals(null, definedReturnType))
+            else if (definedReturnType is null)
                 throw new CompileException(positionInSourceCode, "Function must not return a value");
             else if (!actualReturnType.CanCastTo(definedReturnType))
                 throw new CompileException(positionInSourceCode, "Function return value does not match definition");

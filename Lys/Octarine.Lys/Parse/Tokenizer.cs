@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -57,7 +57,7 @@ namespace Octarine.Lys.Parse
         {
             CommentMode comment = CommentMode.None;
             int readInt;
-            Token tmpToken;
+            Token? tmpToken;
             while ((readInt = _source.Read()) >= 0)
             {
                 // Handle comment mode
@@ -150,7 +150,7 @@ namespace Octarine.Lys.Parse
                             _source.PushBack(nextInt);
                             if (char.IsDigit((char)nextInt))
                                 // Since the next character is a digit, ProcessNumber_Float() cannot return null
-                                return ProcessNumber_Float(position, new StringBuilder(), readInt);
+                                return ProcessNumber_Float(position, new StringBuilder(), readInt) ?? throw new SyntaxException(_source.Position, "Failed to parse floating point number with leading dot.");
                         }
                         return new Token(TokenType.Period, position);
                     case ':':
@@ -264,7 +264,7 @@ namespace Octarine.Lys.Parse
             return new Token(TokenType.EndOfDocument, _source.Position + 1);
         }
 
-        private Token ProcessNumber(int readInt)
+        private Token? ProcessNumber(int readInt)
         {
             long position = _source.Position;
             StringBuilder number = new StringBuilder();
@@ -358,7 +358,7 @@ namespace Octarine.Lys.Parse
         }
 
         /// <returns>null if the number is not a float, a token representing the float otherwise.</returns>
-        private Token ProcessNumber_Float(long position, StringBuilder integerPart, int readInt)
+        private Token? ProcessNumber_Float(long position, StringBuilder integerPart, int readInt)
         {
             StringBuilder fractionalPart = new StringBuilder();
             StringBuilder exponentialPart = new StringBuilder();
@@ -547,7 +547,7 @@ namespace Octarine.Lys.Parse
             return new ValuedToken<RawInt>(TokenType.BinInt, position, rawInt);
         }
 
-        private Token ProcessName(int readInt)
+        private Token? ProcessName(int readInt)
         {
             // Names must start with a letter, an underscore or a dollar sign
             // NOTE: if these are modified, remember to change them in this.ProcessNumber_Float() as well!
@@ -577,7 +577,7 @@ namespace Octarine.Lys.Parse
             return new ValuedToken<string>(startsWithDollar ? TokenType.ReservedName : TokenType.Name, position, keyword.ToString());
         }
 
-        private Token ProcessString(int readInt, bool inEscapeMode = false)
+        private Token? ProcessString(int readInt, bool inEscapeMode = false)
         {
             // Must start with double quote
             if ((char)readInt != '"') return null;

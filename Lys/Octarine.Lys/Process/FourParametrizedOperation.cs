@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -13,6 +13,10 @@ namespace Octarine.Lys.Process
     /// Represents an operation with two additional parameters.
     /// </summary>
     public class FourParametrizedOperation<T1, T2, T3, T4> : SimpleOperation
+    where T1 : notnull
+    where T2 : notnull
+    where T3 : notnull
+    where T4 : notnull
     {
         /// <summary>
         /// Initializes a new parametrized operation.

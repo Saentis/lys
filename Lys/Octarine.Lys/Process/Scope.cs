@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -31,7 +31,7 @@ namespace Octarine.Lys.Process
             _parent = parent;
         }
 
-        private Scope _parent = null;
+        private Scope? _parent = null;
         private Dictionary<string, IType> _vars = new Dictionary<string, IType>();
         private List<string[]> _imports = new List<string[]>();
 

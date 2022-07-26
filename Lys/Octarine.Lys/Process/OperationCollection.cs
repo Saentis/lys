@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -17,13 +17,19 @@ namespace Octarine.Lys.Process
 
         private class Item
         {
-            public Item Next;
-            public Item Prev;
+            public Item? Next;
+            public Item? Prev;
             public IOperation Object;
+
+            public Item(Item? Next, Item? Prev, IOperation Object){
+                this.Next = Next;
+                this.Prev = Prev;
+                this.Object = Object;
+            }
         }
 
         private int _count = 0;
-        private Item _first = null, _last = null;
+        private Item? _first = null, _last = null;
 
         public int Count
         {
@@ -34,22 +40,20 @@ namespace Octarine.Lys.Process
         {
             get
             {
-                if (object.ReferenceEquals(_last, null))
-                    throw new InvalidOperationException("Collection is empty");
-                return _last.Object;
+                return _last?.Object ?? throw new InvalidOperationException("Collection is empty");
             }
         }
 
         public void Append(IOperation operation)
         {
-            if (operation == null) throw new ArgumentNullException("operation");
-            if (_count == 0)
+            if (operation is null) throw new ArgumentNullException("operation");
+            if (_last is null)
             {
-                _first = _last = new Item { Next = null, Prev = null, Object = operation };
+                _first = _last = new Item(null, null, operation );
             }
             else
             {
-                var i = new Item { Next = null, Prev = _last, Object = operation };
+                var i = new Item(null, _last, operation);
                 _last.Next = i;
                 _last = i;
             }
@@ -59,13 +63,13 @@ namespace Octarine.Lys.Process
         public void Prepend(IOperation operation)
         {
             if (operation == null) throw new ArgumentNullException("operation");
-            if (_count == 0)
+            if (_first is null)
             {
-                _first = _last = new Item { Next = null, Prev = null, Object = operation };
+                _first = _last = new Item(null, null, operation );
             }
             else
             {
-                var i = new Item { Next = _first, Prev = null, Object = operation };
+                var i = new Item(_first, null, operation );
                 _first.Prev = i;
                 _first = i;
             }
@@ -78,13 +82,13 @@ namespace Octarine.Lys.Process
             if (collection is OperationCollection)
             {
                 var c = (OperationCollection)collection;
-                if (this._count == 0)
+                if (this._last is null)
                 {
                     this._first = c._first;
                     this._last = c._last;
                     this._count = c._count;
                 }
-                else if (c._count != 0)
+                else if (c._first is not null)
                 {
                     this._last.Next = c._first;
                     c._first.Prev = this._last;
@@ -106,13 +110,13 @@ namespace Octarine.Lys.Process
             if (collection is OperationCollection)
             {
                 var c = (OperationCollection)collection;
-                if (this._count == 0)
+                if (this._first is null)
                 {
                     this._first = c._first;
                     this._last = c._last;
                     this._count = c._count;
                 }
-                else if (c._count != 0)
+                else if (c._last is not null)
                 {
                     c._last.Next = this._first;
                     this._first.Prev = c._last;
@@ -130,8 +134,8 @@ namespace Octarine.Lys.Process
 
         public void ForEach(Action<IOperation> handler)
         {
-            Item pointer = _first;
-            while (pointer != null)
+            Item? pointer = _first;
+            while (pointer is not null)
             {
                 handler(pointer.Object);
                 pointer = pointer.Next;
@@ -155,7 +159,7 @@ namespace Octarine.Lys.Process
             }
 
             private OperationCollection _op;
-            private Item _first, _last, _current;
+            private Item? _first, _last, _current;
             private State _state;
             private enum State { BeforeBeginning, Active, AfterEnd }
 
@@ -170,7 +174,7 @@ namespace Octarine.Lys.Process
                         _state = State.Active;
                         return true;
                     case State.Active:
-                        if ((_current = _current.Next) == null)
+                        if ((_current = _current?.Next) == null)
                         {
                             _state = State.AfterEnd;
                             return false;
@@ -192,7 +196,7 @@ namespace Octarine.Lys.Process
                     case State.BeforeBeginning:
                         return false;
                     case State.Active:
-                        if ((_current = _current.Prev) == null)
+                        if ((_current = _current?.Prev) == null)
                         {
                             _state = State.BeforeBeginning;
                             return false;
@@ -207,14 +211,11 @@ namespace Octarine.Lys.Process
                 }
             }
 
-            public IOperation Current
+            public IOperation? Current
             {
                 get
                 {
-                    if (_current == null)
-                        return null;
-                    else
-                        return _current.Object;
+                    return _current?.Object;
                 }
             }
         }

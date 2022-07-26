@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 Steve Muller <steve.muller@outlook.com>
+Copyright ï¿½ 2015 Steve Muller <steve.muller@outlook.com>
 This file is subject to the license terms in the LICENSE file found in the top-level directory of
 this distribution and at http://github.com/stevemuller04/lys/blob/master/LICENSE
 */
@@ -24,7 +24,7 @@ namespace Octarine.Lys.Parse
             this.Tokenizer = tokenizer;
         }
 
-        private Token _pointer = null;
+        private Token? _pointer;
         private Stack<Token> _history = new Stack<Token>();
 
         /// <summary>
@@ -42,9 +42,7 @@ namespace Octarine.Lys.Parse
         {
             get
             {
-                if (object.ReferenceEquals(null, _pointer))
-                    throw new System.InvalidOperationException("Not pointing at a token, use Next().");
-                return _pointer;
+                return _pointer ?? throw new System.InvalidOperationException("Not pointing at a token, use Next().");
             }
         }
 
@@ -72,13 +70,10 @@ namespace Octarine.Lys.Parse
         /// <exception cref="System.InvalidCastException">
         /// Raises an InvalidCastException if the value is not of type T.
         /// </exception>
-        public T GetValue<T>()
+        public T GetValue<T>() where T : notnull
         {
-            if (object.ReferenceEquals(null, _pointer))
-                throw new System.InvalidOperationException("Not pointing at a token, use Next().");
-
-            if (this.Current is ValuedToken<T>)
-                return (this.Current as ValuedToken<T>).Value;
+            if (this.Current is ValuedToken<T> vt)
+                return vt.Value;
             else
                 throw new System.InvalidCastException();
         }
